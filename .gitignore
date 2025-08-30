@@ -1,4 +1,21 @@
 __pycache__/
 *.pyc
 .venv/
-.env  # MUITO IMPORTANTE: ignora o arquivo com as chaves de API
+.env 
+
+# Dados coletados (não rastrear no Git)
+data/raw/
+*.csv
+debug_*.html
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários
+temp/
+tmp/
+
+# Arquivos específicos do projeto
+g1_headlines_*.csv
+*_sample_*.html
