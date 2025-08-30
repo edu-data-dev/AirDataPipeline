@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.venv/
+.env  # MUITO IMPORTANTE: ignora o arquivo com as chaves de API
