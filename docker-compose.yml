@@ -1,9 +1,9 @@
 # ================================================================================================
-# DOCKER COMPOSE PARA AIRFLOW 2.9.2 (VERSÃO ESTÁVEL)
+# DOCKER COMPOSE PARA AIRFLOW 2.9.2 (VERSÃO CORRIGIDA E LIMPA)
 # ================================================================================================
-version: '3'
 
 x-airflow-common: &airflow-common
+  # Esta é a instrução correta que será herdada por todos os serviços abaixo.
   build: .
   environment:
     &airflow-common-env
@@ -12,15 +12,16 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__FERNET_KEY: 'FBac33GYD_T8pBwB84M2I4t2v0iTThV_1zV1gB22U3k='
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__WEBSERVER__AUTHENTICATE: 'true'
-    # Esta variável de criação de usuário funciona perfeitamente no Airflow 2.x
     AIRFLOW__WWW_USER_CREATE: 'true'
     AIRFLOW__WWW_USER_USERNAME: 'admin'
-    AIRFLOW__WWW_USER_PASSWORD: 'admin' # Troque para 'admin123' se preferir
+    AIRFLOW__WWW_USER_PASSWORD: 'admin'
     AIRFLOW__WWW_USER_ROLE: 'Admin'
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
+    - ./scripts:/opt/airflow/scripts
+    - ./data:/opt/airflow/data
   depends_on:
     postgres:
       condition: service_healthy
@@ -55,7 +56,6 @@ services:
   airflow-webserver:
     <<: *airflow-common
     container_name: airflow_webserver
-    # O comando correto e que funciona no Airflow 2.x
     command: webserver
     ports:
       - "8080:8080"
