@@ -3,3 +3,5 @@ beautifulsoup4
 lxml
 pandas
 playwright
+apache-airflow-providers-postgres
+psycopg2-binary
