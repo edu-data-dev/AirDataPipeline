@@ -279,58 +279,19 @@ projeto_eng_dados-01/
 
 | Componente | Tecnologia | Versão | Finalidade |
 |------------|------------|--------|------------|
-| **Linguagem** | Python | 3.10+ | Desenvolvimento principal |
-| **Web Scraping** | Playwright | Latest | Conteúdo dinâmico JS |
-| **Web Scraping** | BeautifulSoup + Requests | Latest | Conteúdo estático |
-| **Dados** | Pandas | Latest | Manipulação de dados |
-| **IA/LLM** | OpenAI GPT | 4.0+ | Análise de sentimento e categorização |
-| **IA/LLM** | Anthropic Claude | 3.5+ | Alternativa para classificação |
-| **IA Local** | Ollama | Latest | Modelos locais (opcional) |
-| **Orquestração** | Apache Airflow | 2.x | Agendamento e monitoramento |
-| **Banco de Dados** | PostgreSQL | 15+ | Armazenamento (Bronze Layer) |
-| **Transformação** | DBT | 1.x | Modelagem (Silver/Gold) |
-| **Visualização** | Streamlit | Latest | Dashboard interativo |
-| **Containerização** | Docker | Latest | Isolamento de ambiente |
-| **Orquestração** | Docker Compose | Latest | Gerenciamento de containers |
-
-## 📊 Roadmap
-
-### Fase 1: Coleta ✅
-- [x] Web scraper funcional
-- [x] Múltiples engines (Playwright + Requests)
-- [x] Estrutura de dados padronizada
-
-### Fase 2: Enriquecimento com IA 🚧
-- [ ] Integração com APIs de LLM (OpenAI/Claude)
-- [ ] Script de análise de sentimento
-- [ ] Sistema de categorização automática
-- [ ] Processamento em batch das manchetes
-- [ ] Armazenamento dos dados enriquecidos
-
-### Fase 3: Orquestração 🚧
-- [ ] DAG do Airflow para coleta automática
-- [ ] DAG para processamento de IA
-- [ ] Configuração de agendamento
-- [ ] Monitoramento e alertas
-
-### Fase 4: Armazenamento 🚧
-- [ ] Schema do PostgreSQL (com campos de IA)
-- [ ] Inserção automática de dados
-- [ ] Controle de duplicatas
-- [ ] Índices para consultas de sentimento/categoria
-
-### Fase 5: Transformação 🚧
-- [ ] Modelos DBT para limpeza (Silver)
-- [ ] Agregações por sentimento e categoria (Gold)
-- [ ] Métricas de IA e qualidade
-- [ ] Testes de consistência
-
-### Fase 6: Visualização 🚧
-- [ ] Dashboard Streamlit com IA
-- [ ] Análise de tendências de sentimento
-- [ ] Distribuição de categorias
-- [ ] Alertas de sentimento negativo
-- [ ] Métricas de performance de IA
+| **Linguagem** | 🐍 Python | 3.10+ | Desenvolvimento principal |
+| **Web Scraping** | 🎭 Playwright | Latest | Conteúdo dinâmico JS |
+| **Web Scraping** | 🍲 BeautifulSoup + Requests | Latest | Conteúdo estático |
+| **Dados** | 🐼 Pandas | Latest | Manipulação de dados |
+| **IA/LLM** | 🤖 OpenAI GPT | 4.0+ | Análise de sentimento e categorização |
+| **IA/LLM** | 🧠 Anthropic Claude | 3.5+ | Alternativa para classificação |
+| **IA Local** | 🦙 Ollama | Latest | Modelos locais (opcional) |
+| **Orquestração** | 🌬️ Apache Airflow | 2.x | Agendamento e monitoramento |
+| **Banco de Dados** | 🐘 PostgreSQL | 15+ | Armazenamento (Bronze Layer) |
+| **Transformação** | 🔧 DBT | 1.x | Modelagem (Silver/Gold) |
+| **Visualização** | 📊 Streamlit | Latest | Dashboard interativo |
+| **Containerização** | 🐳 Docker | Latest | Isolamento de ambiente |
+| **Orquestração** | 🐙 Docker Compose | Latest | Gerenciamento de containers |
 
 ## 🤝 Contribuição
 
@@ -349,6 +310,11 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 **Projeto**: AirDataPipeline  
 **Repositório**: https://github.com/edu-data-dev/AirDataPipeline
 
----
 
+
+## 📋 Quadro de Tarefas e Fluxo do Projeto
+
+Para acompanhar o fluxo de criação, execução e todas as tarefas realizadas, acesse o quadro do Trello:
+
+[🔗 Trello - Projeto Engenharia de Dados 01](https://trello.com/b/JTQZjq00/projeto-eng-dados01)
 *Este projeto demonstra competências essenciais em Engenharia de Dados: coleta automatizada, orquestração, modelagem de dados e visualização, utilizando ferramentas padrão da indústria.*
