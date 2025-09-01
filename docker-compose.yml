@@ -1,10 +1,9 @@
 # ================================================================================================
-# DOCKER COMPOSE PARA AIRFLOW 2.9.2 (VERSÃO CORRIGIDA E LIMPA)
+# DOCKER COMPOSE PARA AIRFLOW 2.9.2 (COM CORREÇÃO FINAL DE PERMISSÕES E POSTGRES)
 # ================================================================================================
-
 x-airflow-common: &airflow-common
-  # Esta é a instrução correta que será herdada por todos os serviços abaixo.
   build: .
+  user: "${AIRFLOW_UID:-50000}:0"
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -22,15 +21,13 @@ x-airflow-common: &airflow-common
     - ./plugins:/opt/airflow/plugins
     - ./scripts:/opt/airflow/scripts
     - ./data:/opt/airflow/data
-  depends_on:
-    postgres:
-      condition: service_healthy
 
 services:
   postgres:
     image: postgres:15
     container_name: postgres_db
     environment:
+      # CORRIGIDO: Removido acento de POSTGRES
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
@@ -43,15 +40,21 @@ services:
       retries: 5
     restart: always
 
-  # Container que inicializa o banco de dados e depois finaliza
+  # Container que inicializa o banco de dados e ajusta permissões
   airflow-init:
     <<: *airflow-common
     container_name: airflow_init
+    user: root
     command:
       - bash
       - -c
-      - airflow db upgrade && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+      - |
+        chown -R "${AIRFLOW_UID:-50000}:0" /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins /opt/airflow/data /opt/airflow/scripts
+        exec su airflow -c "airflow db upgrade && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
     restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   airflow-webserver:
     <<: *airflow-common
@@ -65,6 +68,11 @@ services:
       timeout: 10s
       retries: 5
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
 
   airflow-scheduler:
     <<: *airflow-common
@@ -73,11 +81,16 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"
+        - airflow jobs check --job-type SchedulerJob --hostname "$$HOSTNAME"
       interval: 30s
       timeout: 10s
       retries: 5
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:

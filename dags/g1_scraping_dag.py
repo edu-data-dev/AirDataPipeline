@@ -60,6 +60,8 @@ def g1_scraping_pipeline():
         # O scraper salva o arquivo na raiz. Dentro do container, o caminho é este.
         # Precisamos encontrar o arquivo CSV mais recente gerado pelo scraper.
         data_dir = '/opt/airflow/data/raw'
+        if not os.path.exists(data_dir) or not os.listdir(data_dir):
+            raise FileNotFoundError(f"Nenhum arquivo encontrado no diretório {data_dir}")
         all_files = [os.path.join(data_dir, f) for f in os.listdir(data_dir)]
         latest_file = max(all_files, key=os.path.getctime)
         

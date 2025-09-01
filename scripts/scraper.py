@@ -15,7 +15,7 @@ except Exception:  # pragma: no cover
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def scrape_g1_headlines(timeout_ms: int = 30000, headless: bool = True, return_df: bool = False, 
+def scrape_g1_headlines(timeout_ms: int = 60000, headless: bool = True, return_df: bool = False, 
                        scroll_attempts: int = 6, wait_after_scroll: int = 3000):
     """Usa Playwright para capturar máximo de conteúdo dinâmico.
 
@@ -49,7 +49,7 @@ def scrape_g1_headlines(timeout_ms: int = 30000, headless: bool = True, return_d
         
         try:
             # Navegar e aguardar carregamento completo
-            page.goto(url, timeout=timeout_ms, wait_until='networkidle')
+            page.goto(url, timeout=timeout_ms, wait_until='domcontentloaded')
             logging.info("[Playwright] Página carregada, aguardando elementos dinâmicos...")
             
             # Aguardar primeiro batch de elementos
