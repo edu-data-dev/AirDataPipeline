@@ -6,3 +6,5 @@ playwright
 apache-airflow-providers-postgres
 psycopg2-binary
 openai
+python-dotenv
+SQLAlchemy
