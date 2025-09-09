@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: public 
+    schema: public 
+    tables:
+      - name: silver_enriched_headlines # O nome da tabela que o Airflow criou
+        description: "Tabela com manchetes enriquecidas com análise de sentimento e categoria pela IA."
