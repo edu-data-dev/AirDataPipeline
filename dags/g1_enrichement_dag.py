@@ -108,11 +108,16 @@ def g1_enrichment_pipeline():
         return True
 
     # Tarefa 3: Executar enriquecimento com LLM
+    # Obter a chave API diretamente da variável de ambiente
+    from airflow.models import Variable
+    openai_api_key = Variable.get("OPENAI_API_KEY")
+    
     run_llm_enricher = BashOperator(
         task_id="run_llm_enricher",
-        bash_command="cd /opt/airflow && python scripts/llm_enricher.py",
+        bash_command="cd /opt/airflow && OPENAI_API_KEY=\"${OPENAI_API_KEY}\" python scripts/llm_enricher.py",
         env={
             'PYTHONPATH': '/opt/airflow',
+            'OPENAI_API_KEY': openai_api_key,
         }
     )
 

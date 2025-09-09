@@ -30,7 +30,7 @@ def get_database_engine():
     load_dotenv()
     
     # Configurações do banco de dados
-    DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
+    DB_HOST = os.getenv("POSTGRES_HOST", "postgres")  # Usando 'postgres' como padrão (nome do serviço no Docker)
     DB_PORT = os.getenv("POSTGRES_PORT", "5432")
     DB_NAME = os.getenv("POSTGRES_DB", "airflow")
     DB_USER = os.getenv("POSTGRES_USER", "airflow")
@@ -59,7 +59,7 @@ def get_postgres_connection():
     load_dotenv()
     
     return psycopg2.connect(
-        host=os.getenv("POSTGRES_HOST", "localhost"),
+        host=os.getenv("POSTGRES_HOST", "postgres"),  # Usando 'postgres' como padrão (nome do serviço no Docker)
         port=os.getenv("POSTGRES_PORT", "5432"),
         database=os.getenv("POSTGRES_DB", "airflow"),
         user=os.getenv("POSTGRES_USER", "airflow"),
@@ -89,39 +89,30 @@ def get_openai_client(logger):
         logger.error(f"Erro ao configurar cliente OpenAI: {e}")
         raise
 
-def get_unprocessed_headlines(engine, logger, batch_size=None):
+def get_unprocessed_headlines(engine, logger, batch_size=50):
     """
-    Busca manchetes que ainda não foram processadas.
-    Retorna apenas manchetes que não estão na tabela silver.
+    Obtém manchetes que ainda não foram processadas.
     """
     try:
-        # Query para buscar apenas manchetes não processadas
-        query = """
-        SELECT r.* 
+        query = text("""
+        SELECT r.*
         FROM raw_headlines r
-        LEFT JOIN silver_enriched_headlines s ON r.id = s.raw_id
-        WHERE s.raw_id IS NULL
-        ORDER BY r.scraped_at DESC
-        """
+        LEFT JOIN silver_enriched_headlines s ON r.link = s.raw_link
+        WHERE s.raw_link IS NULL
+        LIMIT :limit
+        """)
         
-        if batch_size:
-            query += f" LIMIT {batch_size}"
-        
-        # Usar conexão PostgreSQL direta com psycopg2
-        conn = get_postgres_connection()
-        df_unprocessed = pd.read_sql(query, conn)
-        conn.close()
-        
-        if df_unprocessed.empty:
-            logger.info("Nenhuma manchete nova para processar.")
-            return df_unprocessed
-        
-        logger.info(f"Encontradas {len(df_unprocessed)} manchetes não processadas.")
-        return df_unprocessed
-        
+        with engine.connect() as conn:
+            result = conn.execute(query, {"limit": batch_size})
+            df = pd.DataFrame(result.fetchall())
+            if df.empty:
+                logger.info("Nenhuma manchete pendente encontrada.")
+            else:
+                logger.info(f"Encontradas {len(df)} manchetes pendentes.")
+            return df
     except Exception as e:
         logger.error(f"Erro ao buscar manchetes não processadas: {e}")
-        raise
+        return pd.DataFrame()
 
 def create_silver_table_if_not_exists(engine, logger):
     """
@@ -132,9 +123,10 @@ def create_silver_table_if_not_exists(engine, logger):
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS silver_enriched_headlines (
                     id SERIAL PRIMARY KEY,
-                    raw_id INTEGER REFERENCES raw_headlines(id),
+                    raw_link TEXT NOT NULL,
                     title TEXT NOT NULL,
                     link TEXT,
+                    source TEXT,
                     scraped_at TIMESTAMP,
                     sentiment VARCHAR(20),
                     category VARCHAR(50),
@@ -144,9 +136,9 @@ def create_silver_table_if_not_exists(engine, logger):
                     model_used VARCHAR(50) DEFAULT 'gpt-3.5-turbo-1106'
                 );
                 
-                -- Criar índice para evitar duplicatas
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_silver_raw_id 
-                ON silver_enriched_headlines(raw_id);
+                -- Criar índice para evitar duplicatas usando link como chave
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_silver_raw_link 
+                ON silver_enriched_headlines(raw_link);
             """))
         logger.info("Tabela silver_enriched_headlines verificada/criada.")
     except Exception as e:
@@ -237,9 +229,10 @@ def process_headlines_batch(df_headlines, client, logger, batch_name=""):
             
             # Preparar dados para inserção
             enriched_record = {
-                'raw_id': row['id'],
+                'raw_link': row['link'],  # Usando link como chave
                 'title': row['title'],
                 'link': row['link'],
+                'source': row['source'] if 'source' in row else 'g1',
                 'scraped_at': row['scraped_at'],
                 'sentiment': analysis['sentiment'],
                 'category': analysis['category'],
@@ -264,9 +257,10 @@ def process_headlines_batch(df_headlines, client, logger, batch_name=""):
             logger.error(f"Erro ao processar manchete '{headline[:50]}...': {e}")
             # Adicionar registro de erro para não perder a manchete
             enriched_data.append({
-                'raw_id': row['id'],
+                'raw_link': row['link'],  # Usando link como chave
                 'title': row['title'],
                 'link': row['link'],
+                'source': row['source'] if 'source' in row else 'g1',
                 'scraped_at': row['scraped_at'],
                 'sentiment': 'Erro',
                 'category': 'Erro',
