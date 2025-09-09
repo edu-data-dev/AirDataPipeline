@@ -8,3 +8,7 @@ psycopg2-binary
 openai
 python-dotenv
 SQLAlchemy
+
+# DBT e dependências
+dbt-core>=1.5.0
+dbt-postgres>=1.5.0

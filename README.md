@@ -104,6 +104,82 @@ Este projeto demonstra a implementação de um pipeline de dados moderno (Data L
   - Métricas analíticas avançadas com IA
 - **Localização**: `dbt_project/`
 
+#### Modelos DBT Implementados
+
+O DBT organiza as transformações em três camadas principais:
+
+1. **Bronze** (Dados brutos):
+   - `raw_headlines`: Carrega os dados brutos das manchetes do G1
+   - `raw_enriched_headlines`: Dados brutos com enriquecimento de IA
+
+2. **Silver** (Dados limpos):
+   - `clean_headlines`: Limpeza e normalização das manchetes
+   - `enriched_headlines`: Dados limpos + classificações de IA
+   - `news_categories`: Taxonomia padronizada das categorias de notícias
+   - `sentiment_metrics`: Métricas de sentimento por manchete
+
+3. **Gold** (Camada analítica):
+   - `daily_sentiment_analysis`: Agregação diária de sentimentos por categoria
+   - `category_distribution`: Distribuição de notícias por categoria ao longo do tempo
+   - `trending_topics`: Identificação dos tópicos em alta por período
+   - `sentiment_trends`: Análise de tendências de sentimento por período
+
+#### Como Executar o DBT
+
+Para configurar e executar as transformações DBT:
+
+```bash
+# Navegue até o diretório do projeto DBT
+cd dbt_project
+
+# Verifique se as conexões estão configuradas corretamente
+dbt debug
+
+# Execute todos os modelos
+dbt run
+
+# Execute modelos específicos
+dbt run --models +silver.enriched_headlines+
+
+# Execute modelos por tag
+dbt run --models tag:daily
+
+# Gere documentação
+dbt docs generate
+dbt docs serve
+```
+
+#### Arquivo de Perfil DBT
+
+O DBT requer um arquivo de configuração de perfil em `~/.dbt/profiles.yml`:
+
+```yaml
+dbt_project:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      user: airflow
+      password: airflow
+      port: 5432
+      dbname: airflow
+      schema: dbt_gold
+      threads: 4
+```
+
+#### Testes e Qualidade de Dados
+
+O projeto inclui testes para garantir a qualidade dos dados:
+
+```bash
+# Execute todos os testes
+dbt test
+
+# Execute testes específicos
+dbt test --models silver.enriched_headlines
+```
+
 ### 📊 **Camada de Visualização (Streamlit)**
 **Nossa "vitrine"**
 
@@ -224,6 +300,64 @@ docker-compose logs -f [serviço]
 - **Streamlit Dashboard**: http://localhost:8501
 - **PostgreSQL**: localhost:5432
 
+### Usando o DBT para Transformações de Dados
+
+O DBT (Data Build Tool) é usado para transformar os dados coletados pelo scraper e enriquecidos pela IA em modelos analíticos prontos para visualização.
+
+#### Configuração Inicial do DBT
+
+```bash
+# Certifique-se de que o arquivo de perfil está configurado
+mkdir -p ~/.dbt
+cat > ~/.dbt/profiles.yml << 'EOF'
+dbt_project:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      user: airflow
+      password: airflow
+      port: 5432
+      dbname: airflow
+      schema: dbt_gold
+      threads: 4
+EOF
+```
+
+#### Fluxo de Trabalho com DBT
+
+1. **Dados Brutos (Bronze)**:
+   ```bash
+   cd dbt_project
+   dbt run --models bronze
+   ```
+   Este comando carrega os dados coletados do scraper para a camada bronze.
+
+2. **Dados Limpos (Silver)**:
+   ```bash
+   dbt run --models silver
+   ```
+   Este comando transforma os dados brutos em dados limpos e estruturados, incorporando o enriquecimento da IA.
+
+3. **Dados Analíticos (Gold)**:
+   ```bash
+   dbt run --models gold
+   ```
+   Este comando cria as métricas e agregações para análise e visualização.
+
+4. **Execução Completa**:
+   ```bash
+   dbt run
+   ```
+   Este comando executa todas as transformações em sequência.
+
+5. **Validação de Qualidade**:
+   ```bash
+   dbt test
+   ```
+   Este comando executa testes para garantir a qualidade dos dados em todas as camadas.
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -274,7 +408,12 @@ projeto_eng_dados-01/
 ### 🚧 Em Desenvolvimento
 - [ ] Módulo de enriquecimento com IA
 - [ ] DAGs do Airflow (coleta + IA)
-- [ ] Modelagem DBT com dados de IA
+- [x] Modelagem DBT com dados de IA
+  - [x] Camada Bronze: Carregamento de dados brutos
+  - [x] Camada Silver: Limpeza e enriquecimento
+  - [x] Camada Gold: Agregações e métricas analíticas
+  - [x] Testes de qualidade dos dados
+  - [ ] Documentação completa dos modelos
 - [ ] Dashboard Streamlit com análises de sentimento
 - [ ] Testes automatizados
 - [ ] CI/CD Pipeline
