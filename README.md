@@ -8,11 +8,18 @@
   <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI"/>
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
   <img src="https://img.shields.io/badge/DBT-FF694B?style=for-the-badge&logo=dbt&logoColor=white" alt="DBT"/>
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"/>
   <img src="https://img.shields.io/badge/ETL-FF6B35?style=for-the-badge&logo=databricks&logoColor=white" alt="ETL Pipeline"/>
 </p>
  
 
 Um pipeline completo de Engenharia de Dados para coleta, processamento e visualização de notícias do portal G1, implementado com as principais ferramentas do mercado.
+
+## 📋 Acompanhamento do Desenvolvimento
+
+Para acompanhar o fluxo completo de desenvolvimento, execução e todas as tarefas realizadas neste projeto, acesse:
+
+**[🔗 Trello - Projeto Engenharia de Dados 01](https://trello.com/b/JTQZjq00/projeto-eng-dados01)**
 
 ## 🎯 Visão Geral
 
@@ -149,37 +156,6 @@ dbt docs generate
 dbt docs serve
 ```
 
-#### Arquivo de Perfil DBT
-
-O DBT requer um arquivo de configuração de perfil em `~/.dbt/profiles.yml`:
-
-```yaml
-dbt_project:
-  target: dev
-  outputs:
-    dev:
-      type: postgres
-      host: localhost
-      user: airflow
-      password: airflow
-      port: 5432
-      dbname: airflow
-      schema: dbt_gold
-      threads: 4
-```
-
-#### Testes e Qualidade de Dados
-
-O projeto inclui testes para garantir a qualidade dos dados:
-
-```bash
-# Execute todos os testes
-dbt test
-
-# Execute testes específicos
-dbt test --models silver.enriched_headlines
-```
-
 ### 📊 **Camada de Visualização (Streamlit)**
 **Nossa "vitrine"**
 
@@ -249,16 +225,7 @@ nano .env
 
 ## 📋 Uso do Sistema
 
-### Web Scraping Manual
-
-O scraper suporta duas engines:
-
-#### Engine Requests (conteúdo estático)
-```bash
-python scripts/scraper.py --engine requests
-```
-
-#### Engine Playwright (conteúdo dinâmico - Recomendado)
+#### Web Scraping Engine Playwright (conteúdo dinâmico)
 ```bash
 python scripts/scraper.py --engine playwright
 ```
@@ -273,25 +240,43 @@ title,link,source,scraped_at
 "É #FAKE que Trump morreu; presidente é visto a caminho de campo de golfe",https://g1.globo.com/fato-ou-fake/noticia/2025/08/30/e-fake-que-donald-trump-morreu-presidente-e-visto-a-caminho-de-golfe.ghtml,G1,2025-08-30T18:00:07.026369
 ```
 
-### Exemplo de Dados Enriquecidos com IA (Futuro)
-
-```csv
-title,link,source,scraped_at,sentiment,sentiment_score,category,category_score
-"Corpo de Luis Fernando Verissimo é velado na Assembleia do RS",https://g1.globo.com/...,G1,2025-08-30T18:00:06.860299,Negativa,0.85,Cultura,0.92
-"É #FAKE que Trump morreu; presidente é visto a caminho de campo de golfe",https://g1.globo.com/...,G1,2025-08-30T18:00:07.026369,Neutra,0.78,Política,0.89
-```
-
-### Subir o Ambiente Completo
+### 4. Subir o Ambiente com Docker
 
 ```bash
-# Iniciar todos os serviços
+# Construir e iniciar todos os serviços (primeira execução)
+docker-compose up --build -d
+
+# Para execuções posteriores (sem rebuild)
 docker-compose up -d
 
-# Verificar status
+# Verificar status dos containers
 docker-compose ps
 
-# Acessar logs
-docker-compose logs -f [serviço]
+# Parar todos os serviços
+docker-compose down
+
+# Parar e remover volumes (dados serão perdidos)
+docker-compose down -v
+
+# Verificar logs de um serviço específico
+docker-compose logs -f airflow_webserver
+docker-compose logs -f postgres_db
+
+# Verificar logs de todos os serviços
+docker-compose logs -f
+```
+
+### 5. Executar o Dashboard Streamlit (Local)
+
+```bash
+# Ativar ambiente virtual
+source .venv/bin/activate
+
+# Navegar para o diretório do Streamlit
+cd streamlit_app
+
+# Executar o dashboard
+streamlit run dashboard.py
 ```
 
 ### Interfaces de Acesso
@@ -300,131 +285,42 @@ docker-compose logs -f [serviço]
 - **Streamlit Dashboard**: http://localhost:8501
 - **PostgreSQL**: localhost:5432
 
-### Usando o DBT para Transformações de Dados
-
-O DBT (Data Build Tool) é usado para transformar os dados coletados pelo scraper e enriquecidos pela IA em modelos analíticos prontos para visualização.
-
-#### Configuração Inicial do DBT
-
-```bash
-# Certifique-se de que o arquivo de perfil está configurado
-mkdir -p ~/.dbt
-cat > ~/.dbt/profiles.yml << 'EOF'
-dbt_project:
-  target: dev
-  outputs:
-    dev:
-      type: postgres
-      host: localhost
-      user: airflow
-      password: airflow
-      port: 5432
-      dbname: airflow
-      schema: dbt_gold
-      threads: 4
-EOF
-```
-
-#### Fluxo de Trabalho com DBT
-
-1. **Dados Brutos (Bronze)**:
-   ```bash
-   cd dbt_project
-   dbt run --models bronze
-   ```
-   Este comando carrega os dados coletados do scraper para a camada bronze.
-
-2. **Dados Limpos (Silver)**:
-   ```bash
-   dbt run --models silver
-   ```
-   Este comando transforma os dados brutos em dados limpos e estruturados, incorporando o enriquecimento da IA.
-
-3. **Dados Analíticos (Gold)**:
-   ```bash
-   dbt run --models gold
-   ```
-   Este comando cria as métricas e agregações para análise e visualização.
-
-4. **Execução Completa**:
-   ```bash
-   dbt run
-   ```
-   Este comando executa todas as transformações em sequência.
-
-5. **Validação de Qualidade**:
-   ```bash
-   dbt test
-   ```
-   Este comando executa testes para garantir a qualidade dos dados em todas as camadas.
-
 ## 📁 Estrutura do Projeto
 
 ```
-projeto_eng_dados-01/
+AirDataPipeline/
 ├── .env.example              # Exemplo de variáveis de ambiente
 ├── .gitignore               # Arquivos ignorados pelo Git
 ├── requirements.txt         # Dependências Python
 ├── docker-compose.yml       # Configuração dos containers
+├── dockerfile               # Dockerfile para construção de imagens
 ├── README.md               # Este arquivo
-├── scripts/
-│   ├── scraper.py          # Web scraper do G1
-│   └── llm_enricher.py     # Enriquecimento com IA (sentimento/categoria)
+├── data/
+│   └── raw/                # Dados brutos coletados pelo scraper
 ├── dags/
-│   ├── scraping_dag.py     # Pipeline de coleta
-│   └── enrichment_dag.py   # Pipeline de enriquecimento IA
+│   ├── g1_scraping_dag.py  # Pipeline de coleta de notícias
+│   └── g1_enrichement_dag.py # Pipeline de enriquecimento com IA
 ├── dbt_project/
 │   ├── models/
-│   │   ├── bronze/         # Dados brutos
-│   │   ├── silver/         # Dados limpos + IA
-│   │   └── gold/           # Métricas analíticas
-│   ├── tests/              # Testes de qualidade
-│   └── dbt_project.yml     # Configuração DBT
+│   │   ├── staging/        # Modelos de preparação dos dados
+│   │   └── gold/           # Métricas analíticas finais
+│   ├── tests/              # Testes de qualidade de dados
+│   ├── macros/             # Macros reutilizáveis
+│   ├── analyses/           # Análises ad-hoc
+│   ├── seeds/              # Dados de referência
+│   ├── snapshots/          # Snapshots de dados
+│   └── dbt_project.yml     # Configuração do DBT
+├── logs/
+│   ├── dag_id=*/           # Logs dos DAGs do Airflow
+│   └── scheduler/          # Logs do scheduler do Airflow
+├── plugins/                # Plugins customizados do Airflow
+├── scripts/
+│   ├── scraper.py          # Web scraper do G1
+│   ├── llm_enricher.py     # Enriquecimento com IA (sentimento/categoria)
+│   └── llm_test_enricher.py # Testes do enriquecimento com IA
 └── streamlit_app/
-    ├── pages/
-    │   ├── sentiment_analysis.py  # Dashboard de sentimentos
-    │   └── category_trends.py     # Análise por categorias
-    └── main.py             # Dashboard principal
+    └── dashboard.py        # Dashboard principal de visualização
 ```
-
-## 🔧 Funcionalidades Implementadas
-
-### ✅ Web Scraping
-- [x] Coleta de manchetes do G1
-- [x] Suporte a conteúdo dinâmico (Playwright)
-- [x] Fallback para conteúdo estático (Requests + BeautifulSoup)
-- [x] Deduplicação automática
-- [x] Timestamps de coleta
-- [x] Logs detalhados
-- [x] Interface CLI com argumentos
-
-### ✅ Infraestrutura
-- [x] Containerização com Docker
-- [x] Gerenciamento de dependências
-- [x] Controle de versão configurado
-- [x] Ambiente virtual Python
-- [x] Configuração via variáveis de ambiente
-
-### 🚧 Em Desenvolvimento
-- [ ] Módulo de enriquecimento com IA
-- [ ] DAGs do Airflow (coleta + IA)
-- [x] Modelagem DBT com dados de IA
-  - [x] Camada Bronze: Carregamento de dados brutos
-  - [x] Camada Silver: Limpeza e enriquecimento
-  - [x] Camada Gold: Agregações e métricas analíticas
-  - [x] Testes de qualidade dos dados
-  - [ ] Documentação completa dos modelos
-- [ ] Dashboard Streamlit com análises de sentimento
-- [ ] Testes automatizados
-- [ ] CI/CD Pipeline
-
-### 🔮 Recursos de IA Planejados
-- [ ] **Análise de Sentimento**: Classificação automática Positiva/Negativa/Neutra
-- [ ] **Categorização**: Política, Esportes, Tecnologia, Economia, Cultura, Saúde, Internacional, Justiça
-- [ ] **Métricas de Confiança**: Score de certeza da classificação
-- [ ] **Detecção de Trending Topics**: Identificação de assuntos em alta
-- [ ] **Alertas Inteligentes**: Notificações sobre picos de sentimento negativo
-- [ ] **Resumos Automáticos**: Sínteses diárias por categoria
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -432,11 +328,8 @@ projeto_eng_dados-01/
 |------------|------------|--------|------------|
 | **Linguagem** | 🐍 Python | 3.10+ | Desenvolvimento principal |
 | **Web Scraping** | 🎭 Playwright | Latest | Conteúdo dinâmico JS |
-| **Web Scraping** | 🍲 BeautifulSoup + Requests | Latest | Conteúdo estático |
 | **Dados** | 🐼 Pandas | Latest | Manipulação de dados |
 | **IA/LLM** | 🤖 OpenAI GPT | 4.0+ | Análise de sentimento e categorização |
-| **IA/LLM** | 🧠 Anthropic Claude | 3.5+ | Alternativa para classificação |
-| **IA Local** | 🦙 Ollama | Latest | Modelos locais (opcional) |
 | **Orquestração** | 🌬️ Apache Airflow | 2.x | Agendamento e monitoramento |
 | **Banco de Dados** | 🐘 PostgreSQL | 15+ | Armazenamento (Bronze Layer) |
 | **Transformação** | 🔧 DBT | 1.x | Modelagem (Silver/Gold) |
@@ -456,16 +349,6 @@ projeto_eng_dados-01/
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-## 📧 Contato
+---
 
-**Projeto**: AirDataPipeline  
-**Repositório**: https://github.com/edu-data-dev/AirDataPipeline
-
-
-
-## 📋 Quadro de Tarefas e Fluxo do Projeto
-
-Para acompanhar o fluxo de criação, execução e todas as tarefas realizadas, acesse o quadro do Trello:
-
-[🔗 Trello - Projeto Engenharia de Dados 01](https://trello.com/b/JTQZjq00/projeto-eng-dados01)
-*Este projeto demonstra competências essenciais em Engenharia de Dados: coleta automatizada, orquestração, modelagem de dados e visualização, utilizando ferramentas padrão da indústria.*
+*Este projeto demonstra competências essenciais em Engenharia de Dados: coleta automatizada, orquestração, modelagem de dados e visualização, utilizando ferramentas padrão da indústria.*  
