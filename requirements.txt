@@ -10,9 +10,9 @@ python-dotenv
 SQLAlchemy
 
 # DBT e dependências
-dbt-core>=1.5.0
-dbt-postgres>=1.5.0
+#dbt-core>=1.5.0
+#dbt-postgres>=1.5.0
 
 # Visualização e gráficos
-streamlit
-plotly
+#streamlit
+#plotly

@@ -3,7 +3,13 @@
 <!-- Badges das principais tecnologias -->
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/Apache%20Airflow-017CEE?style=for-the-badge&logo=Apache%20Airflow&logoColor=white" alt="Apache Airflow"/>
+  <img src="https://img.shields.io/badge/Apache%20Airflow-017CEE?style=for-the-badge&logo=Apache%20Airflow&logoColor=whi└── dbt_project/
+│   ├── models/
+│   │   ├── staging/        # Modelos de preparação dos dados
+│   │   │   └── stg_enriched_headlines.sql # Dados limpos + classificações
+│   │   └── gold/           # Métricas analíticas finais
+│   │       ├── daily_sentiment_analysis.sql # Agregação de sentimentos
+│   │       └── daily_category_analysis.sql  # Agregação por categoria (NOVO)alt="Apache Airflow"/>
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
   <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI"/>
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
@@ -36,7 +42,7 @@ Este projeto demonstra a implementação de um pipeline de dados moderno (Data L
                                                               ┌──────────────┐
                                                               │ • Sentimento │
                                                               │ • Categoria  │
-                                                              │ • Tags       │
+                                                              │ • Confiança  │
                                                               └──────────────┘
 ```
 
@@ -120,16 +126,11 @@ O DBT organiza as transformações em três camadas principais:
    - `raw_enriched_headlines`: Dados brutos com enriquecimento de IA
 
 2. **Silver** (Dados limpos):
-   - `clean_headlines`: Limpeza e normalização das manchetes
-   - `enriched_headlines`: Dados limpos + classificações de IA
-   - `news_categories`: Taxonomia padronizada das categorias de notícias
-   - `sentiment_metrics`: Métricas de sentimento por manchete
+   - `stg_enriched_headlines`: Dados limpos + classificações de IA
 
 3. **Gold** (Camada analítica):
-   - `daily_sentiment_analysis`: Agregação diária de sentimentos por categoria
-   - `category_distribution`: Distribuição de notícias por categoria ao longo do tempo
-   - `trending_topics`: Identificação dos tópicos em alta por período
-   - `sentiment_trends`: Análise de tendências de sentimento por período
+   - `daily_sentiment_analysis`: Agregação diária de sentimentos
+   - `daily_category_analysis`: Agregação diária por categoria (NOVO)
 
 #### Como Executar o DBT
 
@@ -164,10 +165,29 @@ dbt docs serve
   - Visualização dos dados da camada Gold
   - **Análises de Sentimento**: Distribuição temporal de sentimentos
   - **Dashboard de Categorias**: Volume por tópico e tendências
-  - **Palavra Cloud**: Termos mais frequentes por categoria
   - **Métricas de IA**: Precisão da classificação e confiança
   - **Alertas**: Detecção de picos de sentimento negativo
+  
+#### 🆕 Novas Funcionalidades no Dashboard (Versão Melhorada)
+
+- **Interface por Abas**: Organização em abas para melhor navegabilidade (Evolução Temporal, Distribuição por Categoria, Confiança do Modelo, Manchetes Recentes)
+- **Filtros Avançados**: Seletores de intervalo de datas na barra lateral
+- **Análise por Categoria**: Nova visualização dedicada à distribuição de categorias
+  - Gráfico de barras mostrando volume por categoria
+  - Evolução temporal das principais categorias
+  - Mapa de calor (heatmap) de categorias por dia
+- **Métricas de Confiança**: Nova seção mostrando a confiança do modelo de IA
+  - Visualização da confiança média por sentimento
+  - Histograma de distribuição de confiança
+- **Visualização de Manchetes Recentes**: Tabela com as últimas notícias processadas
+  - Links clicáveis para as notícias originais
+  - Formatação visual por sentimento (verde para positivo, vermelho para negativo)
+- **Indicadores de Tendência**: Análise comparativa mostrando evolução do sentimento
+- **Visualizações Avançadas**: Gráficos de área para proporção de sentimentos
+- **Estatísticas Detalhadas**: Métricas avançadas como média diária e tendências
+
 - **Localização**: `streamlit_app/`
+  - `dashboard.py`: Versão original
 
 ### 🐳 **Ambiente (Docker & Docker Compose)**
 **Nossa "fábrica"**
@@ -275,8 +295,9 @@ source .venv/bin/activate
 # Navegar para o diretório do Streamlit
 cd streamlit_app
 
-# Executar o dashboard
+# Executar o dashboard original
 streamlit run dashboard.py
+
 ```
 
 ### Interfaces de Acesso
@@ -319,7 +340,7 @@ AirDataPipeline/
 │   ├── llm_enricher.py     # Enriquecimento com IA (sentimento/categoria)
 │   └── llm_test_enricher.py # Testes do enriquecimento com IA
 └── streamlit_app/
-    └── dashboard.py        # Dashboard principal de visualização
+    ├── dashboard.py        # Dashboard original de visualização
 ```
 
 ## 🛠️ Tecnologias Utilizadas
@@ -334,6 +355,7 @@ AirDataPipeline/
 | **Banco de Dados** | 🐘 PostgreSQL | 15+ | Armazenamento (Bronze Layer) |
 | **Transformação** | 🔧 DBT | 1.x | Modelagem (Silver/Gold) |
 | **Visualização** | 📊 Streamlit | Latest | Dashboard interativo |
+| **Visualização** | 📈 Plotly | Latest | Gráficos interativos avançados |
 | **Containerização** | 🐳 Docker | Latest | Isolamento de ambiente |
 | **Orquestração** | 🐙 Docker Compose | Latest | Gerenciamento de containers |
 
